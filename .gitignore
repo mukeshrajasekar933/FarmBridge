@@ -1,0 +1,50 @@
+# ─── Python / Backend ──────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+.venv/
+env/
+ENV/
+.Python
+*.pyo
+
+# ─── Environment / Secrets ─────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+
+# ─── Node / Frontend ───────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.next/
+frontend/build/
+.npm
+*.lock
+!package-lock.json
+!yarn.lock
+
+# ─── IDEs ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ─── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+
+# ─── DB ────────────────────────────────────────────────────────────────────────
+*.sqlite
+*.db

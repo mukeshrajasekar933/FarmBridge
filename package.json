@@ -1,0 +1,10 @@
+{
+  "name": "farmbridge-root",
+  "private": true,
+  "description": "FarmBridge AgriTech Marketplace Root Scripts",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint"
+  }
+}
