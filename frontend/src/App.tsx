@@ -27,7 +27,7 @@ import {
   AuthSession
 } from './types';
 import { Language, translations } from './i18n/translations';
-import { api, setAuthToken } from './services/api';
+import { api, setAuthToken, setSupabaseUserId } from './services/api';
 import { supabase } from './utils/supabase/client';
 
 export function App() {
@@ -83,7 +83,7 @@ export function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -93,14 +93,13 @@ export function App() {
   // 1. Initial Data Loading
   const loadInitialData = async (loc = activeLocation) => {
     try {
-      setLoading(true);
 
       // Check authenticated session with backend
       try {
         const me = await api.getMe();
         setCurrentProfile(me);
       } catch (e) {
-        setCurrentProfile(null);
+        // Unauthenticated or guest mode is fine
       }
 
       // Concurrently fetch catalogue, nearby farms, cart, categories, addresses, wishlist
@@ -122,20 +121,75 @@ export function App() {
           api.getNotifications().catch(() => []),
         ]);
 
-      setCategories(catData);
-      setProducts(prodData);
-      setFarms(farmsData);
+      setCategories(catData || []);
+      const uniqueProds = Array.from(new Map((prodData || []).map((p: any) => [p.name || p.id, p])).values());
+      setProducts(uniqueProds as any);
+      setFarms(farmsData || []);
       setCart(cartData);
-      setOrders(ordersData);
-      setSavedAddresses(addrsData);
-      setWishlistIds(wishData.product_ids || []);
-      setNotifications(notifData);
+      setOrders(ordersData || []);
+      setSavedAddresses(addrsData || []);
+      setWishlistIds(wishData?.product_ids || []);
+      setNotifications(notifData || []);
     } catch (err) {
       console.error('Failed to load platform data', err);
     } finally {
       setLoading(false);
     }
   };
+
+  // Always load initial data once on mount
+  useEffect(() => {
+    loadInitialData();
+
+    // Auto-detect accurate user GPS location every time the user enters the site
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const { latitude, longitude, accuracy } = pos.coords;
+          try {
+            const res = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=16&addressdetails=1`,
+              { headers: { 'Accept-Language': 'en' } }
+            );
+            if (res.ok) {
+              const data = await res.json();
+              const addr = data.address || {};
+              const locality = addr.suburb || addr.village || addr.neighbourhood || addr.road || '';
+              const city = addr.city || addr.town || addr.village || addr.county || 'Pollachi';
+              const state = addr.state || 'Tamil Nadu';
+              const label = locality ? `${locality}, ${city}` : `${city}, ${state}`;
+              const detectedLoc: LocationState = {
+                label,
+                latitude,
+                longitude,
+                accuracy,
+                isApproximate: false,
+              };
+              setActiveLocation(detectedLoc);
+              loadInitialData(detectedLoc);
+              showToast(`📍 Live Location: ${label}`);
+              return;
+            }
+          } catch (e) {
+            console.warn('Auto reverse-geocode error:', e);
+          }
+          const detectedLoc: LocationState = {
+            label: `GPS (${latitude.toFixed(3)}, ${longitude.toFixed(3)})`,
+            latitude,
+            longitude,
+            accuracy,
+            isApproximate: false,
+          };
+          setActiveLocation(detectedLoc);
+          loadInitialData(detectedLoc);
+        },
+        (err) => {
+          console.log('GPS initial prompt/fallback:', err.message);
+        },
+        { enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 }
+      );
+    }
+  }, []);
 
   // 2. Supabase Auth Lifecycle and OAuth Redirect Handling
   useEffect(() => {
@@ -240,8 +294,6 @@ export function App() {
         } catch (e) {
           console.error('Initial getSession sync error:', e);
         }
-      } else {
-        loadInitialData();
       }
     });
 
@@ -266,8 +318,7 @@ export function App() {
   };
 
   const handleNavigateToFarmer = () => {
-    setIsFarmerPortal(true);
-    window.history.pushState({ portal: 'farmer' }, '', '/farmer');
+    window.location.href = 'http://localhost:5000';
   };
 
   const handleNavigateToConsumer = () => {
@@ -351,6 +402,7 @@ export function App() {
       console.error('Backend logout error', e);
     }
     setAuthToken(null);
+    setSupabaseUserId(null);
     setCurrentProfile(null);
     setActiveTab('home');
     window.history.replaceState({}, document.title, window.location.pathname);
@@ -494,38 +546,45 @@ export function App() {
 
   const unreadNotificationsCount = notifications.filter((n) => !n.is_read).length;
 
-  // Render the dedicated Farmer Portal when on /farmer route
+  // Redirect to the dedicated Offline Farmer Portal on port 5000 when on /farmer route
   if (isFarmerPortal) {
-    return <FarmerPortalGate onNavigateToConsumer={handleNavigateToConsumer} />;
+    window.location.href = 'http://localhost:5000';
+    return (
+      <div className="min-h-screen bg-[#F8F8F2] flex flex-col items-center justify-center gap-3 text-[#245C3A]">
+        <div className="text-sm font-bold">Redirecting to Farmer Portal on http://localhost:5000...</div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8F8F2] text-[#202820]">
-      {/* Consumer Header */}
-      <ConsumerHeader
-        currentProfile={currentProfile}
-        activeLocation={activeLocation}
-        onOpenLocationModal={() => setIsLocationModalOpen(true)}
-        lang={lang}
-        onToggleLang={setLang}
-        activeTab={activeTab}
-        onSelectTab={handleNavigateTab}
-        cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
-        onOpenCart={() => setIsCartOpen(true)}
-        wishlistCount={wishlistIds.length}
-        onOpenWishlist={() => handleNavigateTab('wishlist')}
-        unreadNotificationsCount={unreadNotificationsCount}
-        onOpenNotifications={() => setIsNotificationsOpen(true)}
-        onLogout={handleLogout}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        categories={categories}
-        products={products}
-        onSelectProduct={(p) => setSelectedProduct(p)}
-        onSearchSubmit={() => {
-          handleNavigateTab('catalogue');
-        }}
-        onNavigateToFarmer={handleNavigateToFarmer}
-      />
+      {/* Consumer Header - Hidden on home for custom hero header */}
+      {activeTab !== 'home' && (
+        <ConsumerHeader
+          currentProfile={currentProfile}
+          activeLocation={activeLocation}
+          onOpenLocationModal={() => setIsLocationModalOpen(true)}
+          lang={lang}
+          onToggleLang={setLang}
+          activeTab={activeTab}
+          onSelectTab={handleNavigateTab}
+          cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+          onOpenCart={() => setIsCartOpen(true)}
+          wishlistCount={wishlistIds.length}
+          onOpenWishlist={() => handleNavigateTab('wishlist')}
+          unreadNotificationsCount={unreadNotificationsCount}
+          onOpenNotifications={() => setIsNotificationsOpen(true)}
+          onLogout={handleLogout}
+          onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          categories={categories}
+          products={products}
+          onSelectProduct={(p) => setSelectedProduct(p)}
+          onSearchSubmit={() => {
+            handleNavigateTab('catalogue');
+          }}
+          onNavigateToFarmer={handleNavigateToFarmer}
+        />
+      )}
 
       {/* Toast Notification */}
       {toastMessage && (
@@ -535,17 +594,8 @@ export function App() {
       )}
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-28 md:pb-12">
-        {loading ? (
-          <div className="py-24 text-center space-y-3">
-            <div className="w-10 h-10 border-4 border-[#1F6B45] border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-xs font-bold text-gray-600">
-              Connecting to Pollachi Regional Farm Network...
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* 1. Home Page */}
+      <main className={`flex-1 w-full ${activeTab === 'home' ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 pb-28 md:pb-12'}`}>
+        {/* 1. Home Page */}
             {activeTab === 'home' && (
               <ConsumerHome
                 products={products}
@@ -569,9 +619,14 @@ export function App() {
                   setSelectedFarmId(farmId);
                   handleNavigateTab('nearby_farms');
                 }}
+                currentProfile={currentProfile}
+                onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                onOpenCart={() => setIsCartOpen(true)}
+                cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+                onNavigateToProfile={() => handleNavigateTab('profile')}
               />
             )}
-
+            
             {/* 2. Products Catalogue */}
             {activeTab === 'catalogue' && (
               <ProductsCatalogue
@@ -687,27 +742,37 @@ export function App() {
                       ? 'Sign in to manage your delivery locations, preferences, and verified consumer profile.'
                       : 'உங்கள் விநியோக முகவரிகள் மற்றும் சுயவிவரத்தை நிர்வகிக்க உள்நுழையவும்.'}
                   </p>
-                  <button
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className="px-6 py-2.5 bg-[#1F6B45] hover:bg-[#185336] text-white text-xs font-bold rounded-2xl shadow-md transition-all cursor-pointer"
-                  >
-                    {lang === 'en' ? 'Continue with Google' : 'Google மூலம் உள்நுழைக'}
-                  </button>
+                  <div className="flex flex-col items-center gap-3 mt-2">
+                    <button
+                      onClick={() => setIsAuthModalOpen(true)}
+                      className="px-6 py-2.5 bg-[#1F6B45] hover:bg-[#185336] text-white text-xs font-bold rounded-2xl shadow-md transition-all cursor-pointer w-full max-w-xs"
+                    >
+                      {lang === 'en' ? 'Sign In / Register' : 'உள்நுழைக'}
+                    </button>
+                    
+                    {/* Fallback Sign Out for zombie sessions */}
+                    <button
+                      onClick={handleLogout}
+                      className="px-6 py-2 text-rose-600 hover:bg-rose-50 text-[11px] font-bold rounded-xl transition-all cursor-pointer"
+                    >
+                      {lang === 'en' ? 'Clear Stuck Session (Sign Out)' : 'வெளியேறு'}
+                    </button>
+                  </div>
                 </div>
               )
             )}
-          </>
-        )}
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <ConsumerMobileNav
-        activeTab={activeTab}
-        onSelectTab={handleNavigateTab}
-        cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
-        onOpenCart={() => setIsCartOpen(true)}
-        lang={lang}
-      />
+      {activeTab !== 'home' && (
+        <ConsumerMobileNav
+          activeTab={activeTab}
+          onSelectTab={handleNavigateTab}
+          cartCount={cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+          onOpenCart={() => setIsCartOpen(true)}
+          lang={lang}
+        />
+      )}
 
       {/* Modals & Drawers */}
 
@@ -718,6 +783,7 @@ export function App() {
         currentLocation={activeLocation}
         onSelectLocation={handleSelectLocation}
         savedAddresses={savedAddresses}
+        onAddAddress={handleAddAddress}
         lang={lang}
       />
 
@@ -786,6 +852,7 @@ export function App() {
       />
 
       {/* Consumer App Footer */}
+      {activeTab !== 'home' && (
       <footer className="bg-white border-t border-[#E5E9E1] pt-12 pb-24 md:pb-12 text-xs text-[#778177]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -876,12 +943,14 @@ export function App() {
                   </button>
                 </li>
                 <li>
-                  <button
-                    onClick={handleNavigateToFarmer}
+                  <a
+                    href="http://localhost:5000"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="font-bold text-[#245C3A] hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    <span>🚜 Farmer Portal Console →</span>
-                  </button>
+                    <span>🚜 Farmer Portal App (Port 5000) →</span>
+                  </a>
                 </li>
                 <li className="pt-1">
                   <span className="inline-block text-[11px] leading-tight text-[#778177] bg-[#FAFBF7] p-2.5 rounded-xl border border-[#E5E9E1]">
@@ -904,6 +973,7 @@ export function App() {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }

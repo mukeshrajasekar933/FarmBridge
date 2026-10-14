@@ -1,50 +1,21 @@
-# ─── Python / Backend ──────────────────────────────────────────────────────────
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-*.egg
-*.egg-info/
-dist/
-build/
-.eggs/
-venv/
+*.env
 .venv/
 env/
-ENV/
-.Python
-*.pyo
+venv/
+.pytest_cache/
 
-# ─── Environment / Secrets ─────────────────────────────────────────────────────
-.env
-.env.*
-!.env.example
-*.key
-*.pem
-
-# ─── Node / Frontend ───────────────────────────────────────────────────────────
+# Node / Vite
 node_modules/
-frontend/dist/
-frontend/.next/
-frontend/build/
-.npm
-*.lock
-!package-lock.json
-!yarn.lock
+dist/
+dist-ssr/
+*.local
 
-# ─── IDEs ──────────────────────────────────────────────────────────────────────
+# IDE
 .vscode/
 .idea/
-*.swp
-*.swo
 .DS_Store
-Thumbs.db
-
-# ─── Logs ──────────────────────────────────────────────────────────────────────
 *.log
-logs/
-npm-debug.log*
-
-# ─── DB ────────────────────────────────────────────────────────────────────────
-*.sqlite
-*.db

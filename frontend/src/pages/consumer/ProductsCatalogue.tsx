@@ -56,9 +56,24 @@ export const ProductsCatalogue: React.FC<ProductsCatalogueProps> = ({
   const [inStockOnly, setInStockOnly] = useState<boolean>(true);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
 
+  // Deduplicate products so no repeated produce appears
+  const uniqueProducts = useMemo(() => {
+    const seen = new Set<string>();
+    const out: Product[] = [];
+    for (const p of products) {
+      const key = (p.name || '').trim().toLowerCase();
+      if (!seen.has(key) && !seen.has(p.id)) {
+        seen.add(key);
+        seen.add(p.id);
+        out.push(p);
+      }
+    }
+    return out;
+  }, [products]);
+
   // Compute filtered & sorted products
   const filteredProducts = useMemo(() => {
-    return products.filter((p) => {
+    return uniqueProducts.filter((p) => {
       // In-stock filter
       if (inStockOnly && (p.available_quantity <= 0 || p.status === 'sold_out')) {
         return false;
@@ -94,7 +109,7 @@ export const ProductsCatalogue: React.FC<ProductsCatalogueProps> = ({
 
       return true;
     });
-  }, [products, inStockOnly, selectedCategory, selectedRadius, maxPrice, searchQuery]);
+  }, [uniqueProducts, inStockOnly, selectedCategory, selectedRadius, maxPrice, searchQuery]);
 
   // Sort products
   const sortedProducts = useMemo(() => {
@@ -144,20 +159,21 @@ export const ProductsCatalogue: React.FC<ProductsCatalogueProps> = ({
 
         {/* Search Input on Desktop & Controls */}
         <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:w-72">
-            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#778177]" />
+          <div className="relative flex-1 md:w-80">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#778177] pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search produce or farm..."
-              className="w-full pl-10 pr-8 py-2 rounded-2xl bg-white border border-[#E5E9E1] text-xs font-medium text-[#202820] focus:border-[#367B4B] focus:outline-hidden"
+              className="w-full pl-10 pr-8 py-2 rounded-full bg-white border border-[#E5E9E1] text-xs font-medium text-[#202820] placeholder-[#778177] focus:border-[#367B4B] focus:ring-4 focus:ring-[#367B4B]/10 focus:outline-hidden transition-all shadow-xs"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-700"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors cursor-pointer"
+                aria-label="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -176,15 +192,15 @@ export const ProductsCatalogue: React.FC<ProductsCatalogueProps> = ({
         </div>
       </div>
 
-      {/* 2. Category Tabs Carousel */}
+      {/* 2. Category Tabs Carousel (Liquid Glass Aesthetic) */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         <button
           type="button"
           onClick={() => setSelectedCategory('all')}
           className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
             selectedCategory === 'all'
-              ? 'bg-[#245C3A] text-white shadow-xs'
-              : 'bg-white text-[#778177] hover:text-[#202820] border border-[#E5E9E1]'
+              ? 'bg-[#245C3A] text-white shadow-md shadow-[#245C3A]/20 scale-[1.02]'
+              : 'bg-white/80 backdrop-blur-md text-[#5A6E59] hover:text-[#1B221C] hover:bg-white border border-[#DDE8DA]'
           }`}
         >
           {t.all_categories}
@@ -197,8 +213,8 @@ export const ProductsCatalogue: React.FC<ProductsCatalogueProps> = ({
             onClick={() => setSelectedCategory(cat.id)}
             className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
               selectedCategory === cat.id
-                ? 'bg-[#245C3A] text-white shadow-xs'
-                : 'bg-white text-[#778177] hover:text-[#202820] border border-[#E5E9E1]'
+                ? 'bg-[#245C3A] text-white shadow-md shadow-[#245C3A]/20 scale-[1.02]'
+                : 'bg-white/80 backdrop-blur-md text-[#5A6E59] hover:text-[#1B221C] hover:bg-white border border-[#DDE8DA]'
             }`}
           >
             {lang === 'ta' && cat.name_ta ? cat.name_ta : cat.name}

@@ -12,6 +12,8 @@ export interface UserProfile {
   default_latitude?: number;
   default_longitude?: number;
   default_address?: string;
+  supabase_auth_id?: string;
+  onboarding_completed?: boolean;
   created_at: string;
 }
 
@@ -257,6 +259,17 @@ export interface SavedAddress {
   latitude: number;
   longitude: number;
   is_default: boolean;
+  buildingName?: string;
+  houseNumber?: string;
+  street?: string;
+  locality?: string;
+  city?: string;
+  district?: string;
+  state?: string;
+  country?: string;
+  placeId?: string;
+  plusCode?: string;
+  formattedAddress?: string;
 }
 
 export interface NotificationItem {

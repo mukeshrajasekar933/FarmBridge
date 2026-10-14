@@ -95,9 +95,10 @@ def get_product(
     lat: Optional[float] = Query(None),
     lng: Optional[float] = Query(None)
 ):
-    if product_id not in store.products:
+    pid = getattr(store, "aliases", {}).get(product_id, product_id)
+    if pid not in store.products:
         raise HTTPException(status_code=404, detail="Product listing not found")
-    p = dict(store.products[product_id])
+    p = dict(store.products[pid])
     if lat is not None and lng is not None:
         p_lat = p.get("latitude") or 10.59
         p_lon = p.get("longitude") or 76.97

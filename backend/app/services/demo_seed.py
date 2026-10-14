@@ -1,5 +1,8 @@
 import uuid
 import math
+import os
+import json
+from pathlib import Path
 from datetime import datetime, date, timedelta
 from typing import Dict, List, Optional, Any
 
@@ -152,19 +155,18 @@ class DataStore:
             "c2": {"id": "c2", "name": "Fresh Fruits", "name_ta": "பழங்கள்", "description": "Locally harvested tropical and hill fruits", "icon": "Apple", "is_active": True},
             "c3": {"id": "c3", "name": "Coconut & Plantation", "name_ta": "தென்னை & தோட்டம்", "description": "World-famous Pollachi tender coconuts & fresh copra", "icon": "Palmtree", "is_active": True},
             "c4": {"id": "c4", "name": "Herbs & Greens", "name_ta": "கீரைகள்", "description": "Fresh daily greens harvested at dawn", "icon": "Leaf", "is_active": True},
-            "c5": {"id": "c5", "name": "Cold-Pressed Oils & Spices", "name_ta": "மரச்செக்கு எண்ணெய்கள்", "description": "Traditional wood-pressed virgin oils & spices", "icon": "Droplets", "is_active": True},
-            "c6": {"id": "c6", "name": "Farm Eggs & Poultry", "name_ta": "நாட்டு முட்டை", "description": "Free-range country eggs from pasture-raised hens", "icon": "Egg", "is_active": True}
+            "c5": {"id": "c5", "name": "Cold-Pressed Oils & Spices", "name_ta": "மரச்செக்கு எண்ணெய்கள்", "description": "Traditional wood-pressed virgin oils", "icon": "Droplets", "is_active": True}
         }
 
-        # 4. PRODUCTS (Associated with Farm Coordinates & Exact Produce Photography)
+        # 4. PRODUCTS (Associated with Farm Coordinates & matching Supabase UUIDs)
         self.products: Dict[str, Dict[str, Any]] = {
-            "p1": {
-                "id": "p1",
+            "11111111-1111-1111-1111-111111111111": {
+                "id": "11111111-1111-1111-1111-111111111111",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c1",
+                "category_id": "c1111111-1111-1111-1111-111111111111",
                 "name": "Country Tomatoes (நாட்டு தக்காளி)",
                 "name_ta": "நாட்டு தக்காளி",
                 "description": "Naturally sun-ripened country tomatoes with characteristic tanginess. Harvested early morning today.",
@@ -183,17 +185,17 @@ class DataStore:
                 "created_at": datetime.now() - timedelta(days=2),
                 "updated_at": datetime.now() - timedelta(hours=3)
             },
-            "p2": {
-                "id": "p2",
+            "22222222-2222-2222-2222-222222222222": {
+                "id": "22222222-2222-2222-2222-222222222222",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c3",
+                "category_id": "c3333333-3333-3333-3333-333333333333",
                 "name": "Pollachi Sweet Tender Coconut (இளநீர்)",
                 "name_ta": "பொள்ளாச்சி இளநீர்",
                 "description": "Authentic Pollachi tall variety tender coconut, full of natural electrolytes and over 450ml sweet water.",
-                "image_paths": ["/products/tender_coconuts_fresh.jpg"],
+                "image_paths": ["https://images.unsplash.com/photo-1525385133512-2f3bdd039054?w=600&auto=format&fit=crop"],
                 "price": 45.0,
                 "unit": "piece",
                 "available_quantity": 110.0,
@@ -208,13 +210,13 @@ class DataStore:
                 "created_at": datetime.now() - timedelta(days=3),
                 "updated_at": datetime.now() - timedelta(hours=4)
             },
-            "p3": {
-                "id": "p3",
+            "33333333-3333-3333-3333-333333333333": {
+                "id": "33333333-3333-3333-3333-333333333333",
                 "farmer_id": "f2000000-0000-0000-0000-000000000002",
                 "farm_id": "fa222222-2222-2222-2222-222222222222",
                 "farm_name": "Anaimalai Organic Valley",
                 "farmer_name": "Lakshmi Ramasamy",
-                "category_id": "c1",
+                "category_id": "c1111111-1111-1111-1111-111111111111",
                 "name": "Small Red Shallots (சின்ன வெங்காயம்)",
                 "name_ta": "சாம்பார் சின்ன வெங்காயம்",
                 "description": "High-flavor small onions grown in red loam soil. Hand-sorted and naturally cured for lasting freshness.",
@@ -233,17 +235,17 @@ class DataStore:
                 "created_at": datetime.now() - timedelta(days=4),
                 "updated_at": datetime.now() - timedelta(hours=6)
             },
-            "p4": {
-                "id": "p4",
+            "44444444-4444-4444-4444-444444444444": {
+                "id": "44444444-4444-4444-4444-444444444444",
                 "farmer_id": "f2000000-0000-0000-0000-000000000002",
                 "farm_id": "fa222222-2222-2222-2222-222222222222",
                 "farm_name": "Anaimalai Organic Valley",
                 "farmer_name": "Lakshmi Ramasamy",
-                "category_id": "c2",
+                "category_id": "c2222222-2222-2222-2222-222222222222",
                 "name": "Anaimalai Red Bananas (செவ்வாழை)",
                 "name_ta": "ஆனைமலை செவ்வாழை",
                 "description": "Nutrient dense native red bananas ripened naturally without calcium carbide or artificial chemicals.",
-                "image_paths": ["/products/red_bananas.jpg"],
+                "image_paths": ["https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&auto=format&fit=crop"],
                 "price": 68.0,
                 "unit": "kg",
                 "available_quantity": 35.0,
@@ -258,17 +260,17 @@ class DataStore:
                 "created_at": datetime.now() - timedelta(days=1),
                 "updated_at": datetime.now() - timedelta(hours=2)
             },
-            "p5": {
-                "id": "p5",
+            "55555555-5555-5555-5555-555555555555": {
+                "id": "55555555-5555-5555-5555-555555555555",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c5",
+                "category_id": "c5555555-5555-5555-5555-555555555555",
                 "name": "Wood-Pressed Virgin Coconut Oil (மரச்செக்கு எண்ணெய்)",
                 "name_ta": "மரச்செக்கு தேங்காய் எண்ணெய்",
                 "description": "Pressed in traditional Vaagai wood rotaries using sun-dried premium copra. Zero chemicals, zero adulteration.",
-                "image_paths": ["/products/coconut_oil.jpg"],
+                "image_paths": ["https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=600&auto=format&fit=crop"],
                 "price": 310.0,
                 "unit": "litre",
                 "available_quantity": 22.0,
@@ -283,95 +285,145 @@ class DataStore:
                 "created_at": datetime.now() - timedelta(days=7),
                 "updated_at": datetime.now() - timedelta(days=1)
             },
-            "p6": {
-                "id": "p6",
-                "farmer_id": "f2000000-0000-0000-0000-000000000002",
-                "farm_id": "fa222222-2222-2222-2222-222222222222",
-                "farm_name": "Anaimalai Organic Valley",
-                "farmer_name": "Lakshmi Ramasamy",
-                "category_id": "c1",
-                "name": "Fresh Moringa Drumsticks (முருங்கைக்காய்)",
-                "name_ta": "நாட்டு முருங்கைக்காய்",
-                "description": "Crisp, fleshy country drumsticks harvested directly from foothill trees. High fiber and rich culinary aroma.",
-                "image_paths": ["/products/drumstick.jpg"],
-                "price": 40.0,
-                "unit": "kg",
-                "available_quantity": 45.0,
-                "minimum_order_quantity": 0.5,
-                "maximum_order_quantity": 10.0,
-                "availability_date": date.today(),
-                "harvest_date": date.today(),
-                "latitude": 10.5810,
-                "longitude": 76.9320,
-                "fulfilment_options": ["pickup", "delivery"],
-                "status": "active",
-                "created_at": datetime.now() - timedelta(days=1),
-                "updated_at": datetime.now() - timedelta(hours=1)
-            },
-            "p7": {
-                "id": "p7",
+            "66666666-6666-6666-6666-666666666666": {
+                "id": "66666666-6666-6666-6666-666666666666",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c1",
-                "name": "Native Purple Brinjal (நாட்டு கத்திரிக்காய்)",
-                "name_ta": "நாட்டு கத்திரிக்காய்",
-                "description": "Glossy native purple eggplants with tender flesh and minimal seeds. Perfect for traditional sambar and ennai kathirikai.",
-                "image_paths": ["/products/brinjal.jpg"],
-                "price": 38.0,
-                "unit": "kg",
-                "available_quantity": 60.0,
-                "minimum_order_quantity": 0.5,
-                "maximum_order_quantity": 15.0,
+                "category_id": "c2222222-2222-2222-2222-222222222222",
+                "name": "Poovan Bananas (பூவன் வாழைப்பழம்)",
+                "name_ta": "பூவன் வாழைப்பழம்",
+                "description": "Naturally tree-ripened organic sweet bananas with rich flavor and distinct aroma.",
+                "image_paths": ["https://images.unsplash.com/photo-1528825871115-3581a5387919?w=600&auto=format&fit=crop"],
+                "price": 50.0,
+                "unit": "dozen",
+                "available_quantity": 40.0,
+                "minimum_order_quantity": 1.0,
+                "maximum_order_quantity": 10.0,
                 "availability_date": date.today(),
                 "harvest_date": date.today(),
                 "latitude": 10.5982,
                 "longitude": 76.9721,
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
-                "created_at": datetime.now() - timedelta(days=2),
-                "updated_at": datetime.now() - timedelta(hours=2)
+                "created_at": datetime.now() - timedelta(days=1),
+                "updated_at": datetime.now()
             },
-            "p8": {
-                "id": "p8",
+            "77777777-7777-7777-7777-777777777777": {
+                "id": "77777777-7777-7777-7777-777777777777",
                 "farmer_id": "f2000000-0000-0000-0000-000000000002",
                 "farm_id": "fa222222-2222-2222-2222-222222222222",
                 "farm_name": "Anaimalai Organic Valley",
                 "farmer_name": "Lakshmi Ramasamy",
-                "category_id": "c2",
-                "name": "Salem Alphonso Mangoes (சேலம் மாம்பழம்)",
-                "name_ta": "சேலம் மாம்பழம்",
-                "description": "Naturally hay-ripened sweet Alphonso mangoes. Tree-ripened without any artificial carbide chemical exposure.",
-                "image_paths": ["/products/mango.jpg"],
-                "price": 120.0,
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Ooty Mountain Potatoes (உருளைக்கிழங்கு)",
+                "name_ta": "ஊட்டி மலை உருளைக்கிழங்கு",
+                "description": "High-altitude organic red-soil potatoes, naturally firm and rich in flavor.",
+                "image_paths": ["https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=600&auto=format&fit=crop"],
+                "price": 38.0,
                 "unit": "kg",
+                "available_quantity": 60.0,
+                "minimum_order_quantity": 1.0,
+                "maximum_order_quantity": 20.0,
+                "availability_date": date.today(),
+                "harvest_date": date.today() - timedelta(days=2),
+                "latitude": 10.5810,
+                "longitude": 76.9320,
+                "fulfilment_options": ["pickup", "delivery"],
+                "status": "active",
+                "created_at": datetime.now() - timedelta(days=3),
+                "updated_at": datetime.now()
+            },
+            "88888888-8888-8888-8888-888888888888": {
+                "id": "88888888-8888-8888-8888-888888888888",
+                "farmer_id": "f2000000-0000-0000-0000-000000000002",
+                "farm_id": "fa222222-2222-2222-2222-222222222222",
+                "farm_name": "Anaimalai Organic Valley",
+                "farmer_name": "Lakshmi Ramasamy",
+                "category_id": "c4444444-4444-4444-4444-444444444444",
+                "name": "Palak Greens / Fresh Spinach (பசலைக் கீரை)",
+                "name_ta": "பசலைக் கீரை",
+                "description": "Crisp green spinach plucked at dawn with moist root base. High iron and nutrient content.",
+                "image_paths": ["https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&auto=format&fit=crop"],
+                "price": 20.0,
+                "unit": "bunch",
                 "available_quantity": 30.0,
                 "minimum_order_quantity": 1.0,
                 "maximum_order_quantity": 10.0,
                 "availability_date": date.today(),
-                "harvest_date": date.today() - timedelta(days=1),
+                "harvest_date": date.today(),
                 "latitude": 10.5810,
                 "longitude": 76.9320,
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
-                "created_at": datetime.now() - timedelta(days=2),
-                "updated_at": datetime.now() - timedelta(hours=5)
+                "created_at": datetime.now() - timedelta(days=1),
+                "updated_at": datetime.now()
             },
-            "p9": {
-                "id": "p9",
+            "99999999-9999-9999-9999-999999999999": {
+                "id": "99999999-9999-9999-9999-999999999999",
+                "farmer_id": "f2000000-0000-0000-0000-000000000002",
+                "farm_id": "fa222222-2222-2222-2222-222222222222",
+                "farm_name": "Anaimalai Organic Valley",
+                "farmer_name": "Lakshmi Ramasamy",
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Hill Country Carrots (நாட்டு கேரட்)",
+                "name_ta": "நாட்டு கேரட்",
+                "description": "Sweet crunchy orange farm carrots harvested with fresh leafy greens. Pesticide-free.",
+                "image_paths": ["https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=600&auto=format&fit=crop"],
+                "price": 45.0,
+                "unit": "kg",
+                "available_quantity": 40.0,
+                "minimum_order_quantity": 0.5,
+                "maximum_order_quantity": 15.0,
+                "availability_date": date.today(),
+                "harvest_date": date.today(),
+                "latitude": 10.5810,
+                "longitude": 76.9320,
+                "fulfilment_options": ["pickup", "delivery"],
+                "status": "active",
+                "created_at": datetime.now() - timedelta(days=1),
+                "updated_at": datetime.now()
+            },
+            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa": {
+                "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c1",
-                "name": "Tender Lady's Finger / Okra (வெண்டைக்காய்)",
-                "name_ta": "நாட்டு வெண்டைக்காய்",
-                "description": "Crunchy, tender green okra pods plucked fresh at dawn. Snaps crisp with no fibrous hardness.",
-                "image_paths": ["/products/okra.jpg"],
-                "price": 35.0,
+                "category_id": "c2222222-2222-2222-2222-222222222222",
+                "name": "Fresh Pink Guava (நாட்டு கொய்யாப்பழம்)",
+                "name_ta": "நாட்டு கொய்யாப்பழம்",
+                "description": "Fragrant pink-hearted local guavas, crisp on the outside and naturally sweet on the inside.",
+                "image_paths": ["https://images.unsplash.com/photo-1536511132770-e5058c7e8c46?w=600&auto=format&fit=crop"],
+                "price": 60.0,
                 "unit": "kg",
-                "available_quantity": 40.0,
+                "available_quantity": 25.0,
+                "minimum_order_quantity": 1.0,
+                "maximum_order_quantity": 10.0,
+                "availability_date": date.today(),
+                "harvest_date": date.today(),
+                "latitude": 10.5982,
+                "longitude": 76.9721,
+                "fulfilment_options": ["pickup", "delivery"],
+                "status": "active",
+                "created_at": datetime.now() - timedelta(days=2),
+                "updated_at": datetime.now()
+            },
+            "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb": {
+                "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                "farmer_id": "f1000000-0000-0000-0000-000000000001",
+                "farm_id": "fa111111-1111-1111-1111-111111111111",
+                "farm_name": "Thennam Thoppu Natural Farm",
+                "farmer_name": "Murugan Palanisamy",
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Native Lady's Finger / Okra (வெண்டைக்காய்)",
+                "name_ta": "நாட்டு வெண்டைக்காய்",
+                "description": "Tender young green okras, freshly snapped this morning. Soft and non-fibrous.",
+                "image_paths": ["https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?w=600&auto=format&fit=crop"],
+                "price": 36.0,
+                "unit": "kg",
+                "available_quantity": 30.0,
                 "minimum_order_quantity": 0.5,
                 "maximum_order_quantity": 10.0,
                 "availability_date": date.today(),
@@ -381,72 +433,22 @@ class DataStore:
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
                 "created_at": datetime.now() - timedelta(days=1),
-                "updated_at": datetime.now() - timedelta(hours=3)
+                "updated_at": datetime.now()
             },
-            "p10": {
-                "id": "p10",
+            "cccccccc-cccc-cccc-cccc-cccccccccccc": {
+                "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
                 "farmer_id": "f2000000-0000-0000-0000-000000000002",
                 "farm_id": "fa222222-2222-2222-2222-222222222222",
                 "farm_name": "Anaimalai Organic Valley",
                 "farmer_name": "Lakshmi Ramasamy",
-                "category_id": "c1",
-                "name": "Organic Ridge Gourd (நாட்டு பீர்க்கங்காய்)",
-                "name_ta": "நாட்டு பீர்க்கங்காய்",
-                "description": "Tender heirloom ridge gourd rich in dietary water and minerals. Plucked right from the trellis vines.",
-                "image_paths": ["/products/ridge_gourd.jpg"],
-                "price": 42.0,
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Fresh Farm Ginger (நாட்டு இஞ்சி)",
+                "name_ta": "நாட்டு இஞ்சி",
+                "description": "Zesty, highly aromatic soil-grown ginger rhizomes. Cleaned and cured naturally.",
+                "image_paths": ["https://images.unsplash.com/photo-1615485290382-441e4d049cb5?w=600&auto=format&fit=crop"],
+                "price": 120.0,
                 "unit": "kg",
                 "available_quantity": 25.0,
-                "minimum_order_quantity": 0.5,
-                "maximum_order_quantity": 8.0,
-                "availability_date": date.today(),
-                "harvest_date": date.today(),
-                "latitude": 10.5810,
-                "longitude": 76.9320,
-                "fulfilment_options": ["pickup", "delivery"],
-                "status": "active",
-                "created_at": datetime.now() - timedelta(days=2),
-                "updated_at": datetime.now() - timedelta(hours=4)
-            },
-            "p11": {
-                "id": "p11",
-                "farmer_id": "f1000000-0000-0000-0000-000000000001",
-                "farm_id": "fa111111-1111-1111-1111-111111111111",
-                "farm_name": "Thennam Thoppu Natural Farm",
-                "farmer_name": "Murugan Palanisamy",
-                "category_id": "c1",
-                "name": "Farm Fresh Bitter Gourd (பாகற்காய்)",
-                "name_ta": "நாட்டு பாகற்காய்",
-                "description": "Small dark green native bitter gourds known for immense health benefits, roasted crispness and medicinal value.",
-                "image_paths": ["/products/bitter_gourd.jpg"],
-                "price": 45.0,
-                "unit": "kg",
-                "available_quantity": 30.0,
-                "minimum_order_quantity": 0.5,
-                "maximum_order_quantity": 6.0,
-                "availability_date": date.today(),
-                "harvest_date": date.today(),
-                "latitude": 10.5982,
-                "longitude": 76.9721,
-                "fulfilment_options": ["pickup", "delivery"],
-                "status": "active",
-                "created_at": datetime.now() - timedelta(days=1),
-                "updated_at": datetime.now() - timedelta(hours=1)
-            },
-            "p12": {
-                "id": "p12",
-                "farmer_id": "f2000000-0000-0000-0000-000000000002",
-                "farm_id": "fa222222-2222-2222-2222-222222222222",
-                "farm_name": "Anaimalai Organic Valley",
-                "farmer_name": "Lakshmi Ramasamy",
-                "category_id": "c5",
-                "name": "Fresh Raw Farm Turmeric (விரலி மஞ்சள்)",
-                "name_ta": "பச்சை விரலி மஞ்சள்",
-                "description": "Soil-dusted fresh native raw turmeric rhizomes straight after harvesting. High curcumin content and radiant aroma.",
-                "image_paths": ["/products/turmeric.jpg"],
-                "price": 95.0,
-                "unit": "kg",
-                "available_quantity": 35.0,
                 "minimum_order_quantity": 0.25,
                 "maximum_order_quantity": 5.0,
                 "availability_date": date.today(),
@@ -455,24 +457,49 @@ class DataStore:
                 "longitude": 76.9320,
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
-                "created_at": datetime.now() - timedelta(days=3),
-                "updated_at": datetime.now() - timedelta(hours=3)
+                "created_at": datetime.now() - timedelta(days=2),
+                "updated_at": datetime.now()
             },
-            "p13": {
-                "id": "p13",
+            "dddddddd-dddd-dddd-dddd-dddddddddddd": {
+                "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c4",
-                "name": "Aromatic Fresh Curry Leaves (நாட்டு கருவேப்பிலை)",
-                "name_ta": "நாட்டு கருவேப்பிலை",
-                "description": "Dark green fragrant curry leaf sprigs harvested with the morning dew. Intense essential oil aroma.",
-                "image_paths": ["/products/curry_leaves.jpg"],
-                "price": 15.0,
-                "unit": "bunch",
-                "available_quantity": 50.0,
-                "minimum_order_quantity": 1.0,
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Spicy Green Chillies (நாட்டு பச்சை மிளகாய்)",
+                "name_ta": "நாட்டு பச்சை மிளகாய்",
+                "description": "Crisp spicy green chillies grown along coconut grove bunds. Distinct kick and aroma.",
+                "image_paths": ["https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=600&auto=format&fit=crop"],
+                "price": 40.0,
+                "unit": "kg",
+                "available_quantity": 20.0,
+                "minimum_order_quantity": 0.25,
+                "maximum_order_quantity": 5.0,
+                "availability_date": date.today(),
+                "harvest_date": date.today(),
+                "latitude": 10.5982,
+                "longitude": 76.9721,
+                "fulfilment_options": ["pickup", "delivery"],
+                "status": "active",
+                "created_at": datetime.now() - timedelta(days=1),
+                "updated_at": datetime.now()
+            },
+            "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee": {
+                "id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+                "farmer_id": "f1000000-0000-0000-0000-000000000001",
+                "farm_id": "fa111111-1111-1111-1111-111111111111",
+                "farm_name": "Thennam Thoppu Natural Farm",
+                "farmer_name": "Murugan Palanisamy",
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Fresh Drumsticks (பொள்ளாச்சி முருங்கைக்காய்)",
+                "name_ta": "பொள்ளாச்சி முருங்கைக்காய்",
+                "description": "Long, fleshy native Pollachi drumsticks, loaded with thick sweet pulp.",
+                "image_paths": ["https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=600&auto=format&fit=crop"],
+                "price": 50.0,
+                "unit": "kg",
+                "available_quantity": 30.0,
+                "minimum_order_quantity": 0.5,
                 "maximum_order_quantity": 10.0,
                 "availability_date": date.today(),
                 "harvest_date": date.today(),
@@ -481,49 +508,124 @@ class DataStore:
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
                 "created_at": datetime.now() - timedelta(days=1),
-                "updated_at": datetime.now() - timedelta(hours=1)
+                "updated_at": datetime.now()
             },
-            "p14": {
-                "id": "p14",
+            "ffffffff-ffff-ffff-ffff-ffffffffffff": {
+                "id": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+                "farmer_id": "f2000000-0000-0000-0000-000000000002",
+                "farm_id": "fa222222-2222-2222-2222-222222222222",
+                "farm_name": "Anaimalai Organic Valley",
+                "farmer_name": "Lakshmi Ramasamy",
+                "category_id": "c2222222-2222-2222-2222-222222222222",
+                "name": "Amla / Indian Gooseberry (நாட்டு நெல்லிக்காய்)",
+                "name_ta": "நாட்டு பெரிய நெல்லிக்காய்",
+                "description": "Wild harvested big amla fruits loaded with vitamin C and immune-boosting antioxidants.",
+                "image_paths": ["https://images.unsplash.com/photo-1615485500704-8e990f9900f7?w=600&auto=format&fit=crop"],
+                "price": 80.0,
+                "unit": "kg",
+                "available_quantity": 25.0,
+                "minimum_order_quantity": 0.5,
+                "maximum_order_quantity": 10.0,
+                "availability_date": date.today(),
+                "harvest_date": date.today() - timedelta(days=1),
+                "latitude": 10.5810,
+                "longitude": 76.9320,
+                "fulfilment_options": ["pickup", "delivery"],
+                "status": "active",
+                "created_at": datetime.now() - timedelta(days=2),
+                "updated_at": datetime.now()
+            },
+            "10101010-1010-1010-1010-101010101010": {
+                "id": "10101010-1010-1010-1010-101010101010",
+                "farmer_id": "f2000000-0000-0000-0000-000000000002",
+                "farm_id": "fa222222-2222-2222-2222-222222222222",
+                "farm_name": "Anaimalai Organic Valley",
+                "farmer_name": "Lakshmi Ramasamy",
+                "category_id": "c5555555-5555-5555-5555-555555555555",
+                "name": "Organic Raw Turmeric (பச்சை மஞ்சள் கிழங்கு)",
+                "name_ta": "பச்சை மஞ்சள் கிழங்கு",
+                "description": "Golden raw turmeric roots freshly dug from deep red soil. High curcumin content.",
+                "image_paths": ["https://images.unsplash.com/photo-1615485290176-0bf160a08e0a?w=600&auto=format&fit=crop"],
+                "price": 95.0,
+                "unit": "kg",
+                "available_quantity": 30.0,
+                "minimum_order_quantity": 0.5,
+                "maximum_order_quantity": 10.0,
+                "availability_date": date.today(),
+                "harvest_date": date.today() - timedelta(days=2),
+                "latitude": 10.5810,
+                "longitude": 76.9320,
+                "fulfilment_options": ["pickup", "delivery"],
+                "status": "active",
+                "created_at": datetime.now() - timedelta(days=3),
+                "updated_at": datetime.now()
+            },
+            "20202020-2020-2020-2020-202020202020": {
+                "id": "20202020-2020-2020-2020-202020202020",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c2",
-                "name": "Sweet Pollachi Guava (பொள்ளாச்சி கொய்யா)",
-                "name_ta": "பொள்ளாச்சி கொய்யாப்பழம்",
-                "description": "Crisp white flesh country guavas with mild sweetness and vitamin C boost. Grown without synthetic sprays.",
-                "image_paths": ["/products/guava.jpg"],
-                "price": 50.0,
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Country Brinjal / Eggplant (நாட்டு கத்தரிக்காய்)",
+                "name_ta": "நாட்டு கத்தரிக்காய்",
+                "description": "Tender striped green-purple country brinjals with minimal seeds and melt-in-mouth texture.",
+                "image_paths": ["https://images.unsplash.com/photo-1590301157890-4810ed352733?w=600&auto=format&fit=crop"],
+                "price": 42.0,
                 "unit": "kg",
-                "available_quantity": 40.0,
-                "minimum_order_quantity": 1.0,
-                "maximum_order_quantity": 10.0,
+                "available_quantity": 35.0,
+                "minimum_order_quantity": 0.5,
+                "maximum_order_quantity": 15.0,
                 "availability_date": date.today(),
                 "harvest_date": date.today(),
                 "latitude": 10.5982,
                 "longitude": 76.9721,
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
-                "created_at": datetime.now() - timedelta(days=2),
-                "updated_at": datetime.now() - timedelta(hours=3)
+                "created_at": datetime.now() - timedelta(days=1),
+                "updated_at": datetime.now()
             },
-            "p15": {
-                "id": "p15",
+            "30303030-3030-3030-3030-303030303030": {
+                "id": "30303030-3030-3030-3030-303030303030",
                 "farmer_id": "f2000000-0000-0000-0000-000000000002",
                 "farm_id": "fa222222-2222-2222-2222-222222222222",
                 "farm_name": "Anaimalai Organic Valley",
                 "farmer_name": "Lakshmi Ramasamy",
-                "category_id": "c1",
-                "name": "Hot Green Chillies (பச்சை மிளகாய்)",
-                "name_ta": "பச்சை மிளகாய்",
-                "description": "Spicy and crisp farm fresh green chillies. Plucked fresh from outdoor rows, perfect heat for Kongu cooking.",
-                "image_paths": ["/products/green_chillies.jpg"],
-                "price": 60.0,
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Mountain Garlic Bulbs (மலைப் பூண்டு)",
+                "name_ta": "நாட்டு மலைப் பூண்டு",
+                "description": "Strong pungent single and multi-clove hill garlic. Cured in dry shade for high shelf life.",
+                "image_paths": ["https://images.unsplash.com/photo-1588615419957-bf66d53c6b49?w=600&auto=format&fit=crop"],
+                "price": 180.0,
                 "unit": "kg",
                 "available_quantity": 30.0,
                 "minimum_order_quantity": 0.25,
                 "maximum_order_quantity": 5.0,
+                "availability_date": date.today(),
+                "harvest_date": date.today() - timedelta(days=5),
+                "latitude": 10.5810,
+                "longitude": 76.9320,
+                "fulfilment_options": ["pickup", "delivery"],
+                "status": "active",
+                "created_at": datetime.now() - timedelta(days=4),
+                "updated_at": datetime.now()
+            },
+            "40404040-4040-4040-4040-404040404040": {
+                "id": "40404040-4040-4040-4040-404040404040",
+                "farmer_id": "f2000000-0000-0000-0000-000000000002",
+                "farm_id": "fa222222-2222-2222-2222-222222222222",
+                "farm_name": "Anaimalai Organic Valley",
+                "farmer_name": "Lakshmi Ramasamy",
+                "category_id": "c1111111-1111-1111-1111-111111111111",
+                "name": "Organic Garden Beetroot (நாட்டு பீட்ரூட்)",
+                "name_ta": "நாட்டு பீட்ரூட்",
+                "description": "Crisp sweet ruby-red beetroots fresh from the soil. Plucked with tender nutrient greens.",
+                "image_paths": ["https://images.unsplash.com/photo-1593105544559-ecb03bf76f82?w=600&auto=format&fit=crop"],
+                "price": 40.0,
+                "unit": "kg",
+                "available_quantity": 35.0,
+                "minimum_order_quantity": 0.5,
+                "maximum_order_quantity": 10.0,
                 "availability_date": date.today(),
                 "harvest_date": date.today(),
                 "latitude": 10.5810,
@@ -531,24 +633,24 @@ class DataStore:
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
                 "created_at": datetime.now() - timedelta(days=1),
-                "updated_at": datetime.now() - timedelta(hours=2)
+                "updated_at": datetime.now()
             },
-            "p16": {
-                "id": "p16",
+            "50505050-5050-5050-5050-505050505050": {
+                "id": "50505050-5050-5050-5050-505050505050",
                 "farmer_id": "f1000000-0000-0000-0000-000000000001",
                 "farm_id": "fa111111-1111-1111-1111-111111111111",
                 "farm_name": "Thennam Thoppu Natural Farm",
                 "farmer_name": "Murugan Palanisamy",
-                "category_id": "c6",
-                "name": "Free-Range Country Eggs (நாட்டு கோழி முட்டை)",
-                "name_ta": "நாட்டு கோழி முட்டை",
-                "description": "Pasture-raised authentic Naatu Kozhi eggs with rich golden yolk. Collected daily morning from free-range flock.",
-                "image_paths": ["/products/country_eggs.jpg"],
-                "price": 12.0,
-                "unit": "piece",
-                "available_quantity": 60.0,
-                "minimum_order_quantity": 6.0,
-                "maximum_order_quantity": 30.0,
+                "category_id": "c4444444-4444-4444-4444-444444444444",
+                "name": "Fresh Moringa Leaves (முருங்கைக்கீரை)",
+                "name_ta": "முருங்கைக்கீரை",
+                "description": "Pure iron and mineral-rich drumstick tree greens, gathered fresh at sunrise.",
+                "image_paths": ["https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&auto=format&fit=crop"],
+                "price": 25.0,
+                "unit": "bunch",
+                "available_quantity": 30.0,
+                "minimum_order_quantity": 1.0,
+                "maximum_order_quantity": 10.0,
                 "availability_date": date.today(),
                 "harvest_date": date.today(),
                 "latitude": 10.5982,
@@ -556,8 +658,32 @@ class DataStore:
                 "fulfilment_options": ["pickup", "delivery"],
                 "status": "active",
                 "created_at": datetime.now() - timedelta(days=1),
-                "updated_at": datetime.now() - timedelta(hours=1)
+                "updated_at": datetime.now()
             }
+        }
+
+        # Lookup alias mapping for legacy requests without duplicating in self.products
+        self.aliases: Dict[str, str] = {
+            "p1": "11111111-1111-1111-1111-111111111111",
+            "p2": "22222222-2222-2222-2222-222222222222",
+            "p3": "33333333-3333-3333-3333-333333333333",
+            "p4": "44444444-4444-4444-4444-444444444444",
+            "p5": "55555555-5555-5555-5555-555555555555",
+            "p6": "66666666-6666-6666-6666-666666666666",
+            "p7": "77777777-7777-7777-7777-777777777777",
+            "p8": "88888888-8888-8888-8888-888888888888",
+            "p9": "99999999-9999-9999-9999-999999999999",
+            "p10": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "p11": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+            "p12": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+            "p13": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+            "p14": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee",
+            "p15": "ffffffff-ffff-ffff-ffff-ffffffffffff",
+            "p16": "10101010-1010-1010-1010-101010101010",
+            "p17": "20202020-2020-2020-2020-202020202020",
+            "p18": "30303030-3030-3030-3030-303030303030",
+            "p19": "40404040-4040-4040-4040-404040404040",
+            "p20": "50505050-5050-5050-5050-505050505050",
         }
 
         # 5. CARTS: buyer_id -> list of items
@@ -773,6 +899,35 @@ class DataStore:
             }
         ]
 
+        # Load persisted orders from disk (if any exist)
+        self.load_orders()
+
+    def save_orders(self):
+        try:
+            data_dir = Path(__file__).resolve().parent.parent.parent / "data"
+            data_dir.mkdir(parents=True, exist_ok=True)
+            orders_file = data_dir / "orders_store.json"
+            def default_serializer(o):
+                if isinstance(o, (datetime, date)):
+                    return o.isoformat()
+                return str(o)
+            with open(orders_file, "w", encoding="utf-8") as f:
+                json.dump(self.orders, f, default=default_serializer, indent=2)
+        except Exception as e:
+            print(f"Error persisting orders to disk: {e}")
+
+    def load_orders(self):
+        try:
+            orders_file = Path(__file__).resolve().parent.parent.parent / "data" / "orders_store.json"
+            if orders_file.exists():
+                with open(orders_file, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, dict) and loaded:
+                        for k, v in loaded.items():
+                            self.orders[k] = v
+        except Exception as e:
+            print(f"Error loading orders from disk: {e}")
+
     # --- GEOSPATIAL HELPER METHODS ---
     def get_nearby_farms(self, user_lat: float, user_lon: float, radius_km: Optional[float] = None) -> List[Dict[str, Any]]:
         farms_with_dist = []
@@ -807,9 +962,18 @@ class DataStore:
         fulfilment: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         results = []
+        seen_ids = set()
+        seen_names = set()
         for p in self.products.values():
             if p["status"] != "active":
                 continue
+            pid = p.get("id")
+            pname = p.get("name")
+            if pid in seen_ids or pname in seen_names:
+                continue
+            seen_ids.add(pid)
+            if pname:
+                seen_names.add(pname)
             p_lat = p.get("latitude")
             p_lon = p.get("longitude")
             if p_lat is None or p_lon is None:

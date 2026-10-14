@@ -4,7 +4,20 @@
   "description": "FarmBridge AgriTech Marketplace Root Scripts",
   "scripts": {
     "dev": "npm --prefix frontend run dev",
+    "backend": "python -m uvicorn app.main:app --host 127.0.0.1 --port 8001 --app-dir backend",
+    "serve:offline": "npx -y serve offline-dashboard -l 5000",
+    "start:all": "npx -y concurrently \"npm run backend\" \"npm run serve:offline\" \"npm run dev\"",
     "build": "npm --prefix frontend run build",
     "lint": "npm --prefix frontend run lint"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.117.2",
+    "next": "^16.3.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3"
   }
 }
